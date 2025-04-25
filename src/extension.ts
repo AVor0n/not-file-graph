@@ -2,6 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as fs from 'fs';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -23,6 +24,23 @@ class HelloViewProvider implements vscode.WebviewViewProvider {
 		private readonly _extensionUri: vscode.Uri,
 	) { }
 
+	private resolveFilePath(configPath: string): string {
+		// Если путь абсолютный - используем как есть
+		if (path.isAbsolute(configPath)) {
+			return configPath;
+		}
+
+		// Получаем текущую рабочую область
+		const workspaceFolders = vscode.workspace.workspaceFolders;
+		if (!workspaceFolders || workspaceFolders.length === 0) {
+			throw new Error('No workspace folder is opened');
+		}
+
+		// Используем первую рабочую область как базовую директорию
+		const workspaceRoot = workspaceFolders[0].uri.fsPath;
+		return path.join(workspaceRoot, configPath);
+	}
+
 	public resolveWebviewView(
 		webviewView: vscode.WebviewView,
 		context: vscode.WebviewViewResolveContext,
@@ -38,9 +56,48 @@ class HelloViewProvider implements vscode.WebviewViewProvider {
 		webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
 		// Обработка сообщений от webview
-		webviewView.webview.onDidReceiveMessage(data => {
-			if (data.command === 'hello') {
-				vscode.window.showInformationMessage('Hello from extension!');
+		webviewView.webview.onDidReceiveMessage(async data => {
+			if (data.command === 'loadJson') {
+				const config = vscode.workspace.getConfiguration('not-file-graph');
+				const configPath = config.get<string>('sourceFilePath');
+
+				if (!configPath) {
+					webviewView.webview.postMessage({
+						type: 'error',
+						message: 'Source file path is not configured. Please set it in settings.'
+					});
+					return;
+				}
+
+				try {
+					// Резолвим путь к файлу
+					const absolutePath = this.resolveFilePath(configPath);
+
+					// Проверяем существование файла
+					if (!fs.existsSync(absolutePath)) {
+						webviewView.webview.postMessage({
+							type: 'error',
+							message: `File not found: ${absolutePath}`
+						});
+						return;
+					}
+
+					const fileContent = await fs.promises.readFile(absolutePath, 'utf8');
+					const jsonData = JSON.parse(fileContent);
+					webviewView.webview.postMessage({
+						type: 'jsonData',
+						data: jsonData
+					});
+				} catch (error) {
+					let errorMessage = error instanceof Error ? error.message : 'Failed to load JSON file';
+					if (error instanceof SyntaxError) {
+						errorMessage = 'Invalid JSON format';
+					}
+					webviewView.webview.postMessage({
+						type: 'error',
+						message: errorMessage
+					});
+				}
 			}
 		});
 	}

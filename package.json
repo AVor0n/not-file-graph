@@ -35,6 +35,16 @@
           "name": "Hello View"
         }
       ]
+    },
+    "configuration": {
+      "title": "Not File Graph",
+      "properties": {
+        "not-file-graph.sourceFilePath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the source JSON file"
+        }
+      }
     }
   },
   "scripts": {
