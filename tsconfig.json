@@ -12,7 +12,8 @@
 		"strict": true,   /* enable all strict type-checking options */
 		"jsx": "react",
 		"esModuleInterop": true,
-		"skipLibCheck": true
+		"skipLibCheck": true,
+		"typeRoots": ["./node_modules/@types", "./src/types"]
 	},
 	"exclude": [
 		"node_modules",

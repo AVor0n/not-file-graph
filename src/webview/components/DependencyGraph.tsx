@@ -1,16 +1,10 @@
-import React, { useCallback, useMemo } from 'react';
-import ReactFlow, {
-  Background,
-  Controls,
-  Edge,
-  Node,
-  Position,
-  useNodesState,
-  useEdgesState,
-  Panel
-} from 'reactflow';
-import 'reactflow/dist/style.css';
+import React, { useEffect, useRef } from 'react';
+import cytoscape, { Core, NodeSingular, EdgeSingular } from 'cytoscape';
+import dagre from 'cytoscape-dagre';
 import { validateDependencies, ValidationError } from '../../utils/validateDependencies';
+
+// Регистрируем плагин dagre для автоматического размещения узлов
+cytoscape.use(dagre);
 
 interface DependencyData {
   importsDeclarations: string[];
@@ -22,83 +16,127 @@ interface GraphProps {
 }
 
 const DependencyGraphComponent: React.FC<GraphProps> = ({ data }) => {
-  try {
-    // Валидируем данные
-    validateDependencies(data);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const cyRef = useRef<Core | null>(null);
 
-    // Создаем узлы и связи
-    const initialNodes: Node[] = Object.keys(data).map((filePath, index) => {
-      const endName = filePath.split('/');
-      const name = endName.at(-1)?.split('.')[0] === 'index' ? endName.at(-2) : endName.at(-1);
-      return {
-        id: filePath,
-        data: { label: name || filePath },
-        position: { x: Math.random() * 800, y: Math.random() * 600 },
-        style: {
-          background: '#69b3a2',
-          color: '#fff',
-          border: '2px solid #fff',
-          borderRadius: '5px',
-          padding: '10px',
-          width: 'auto',
-          height: 'auto',
-          fontSize: '14px',
-          fontWeight: 'bold'
-        }
+  useEffect(() => {
+    if (!containerRef.current || !data) return;
+
+    try {
+      // Валидируем данные
+      validateDependencies(data);
+
+      // Создаем узлы и связи
+      const nodes = Object.keys(data).map(filePath => {
+        const endName = filePath.split('/');
+        const name = endName.at(-1)?.split('.')[0] === 'index' ? endName.at(-2) : endName.at(-1);
+        return {
+          data: {
+            id: filePath,
+            name: name || filePath
+          }
+        };
+      });
+
+      const edges = Object.entries(data).flatMap(([source, deps]) => [
+        ...deps.importsDeclarations.map(target => ({
+          data: {
+            id: `${source}-${target}`,
+            source,
+            target
+          }
+        })),
+        ...deps.reverseImports.map(target => ({
+          data: {
+            id: `${target}-${source}`,
+            source: target,
+            target: source
+          }
+        }))
+      ]);
+
+      // Создаем экземпляр Cytoscape
+      const cy = cytoscape({
+        container: containerRef.current,
+        elements: {
+          nodes,
+          edges
+        },
+        style: [
+          {
+            selector: 'node',
+            style: {
+              'background-color': '#69b3a2',
+              'label': 'data(name)',
+              'text-valign': 'center',
+              'text-halign': 'center',
+              'color': '#fff',
+              'text-wrap': 'wrap',
+              'text-max-width': '100px',
+              'font-size': '14px',
+              'font-weight': 'bold',
+              'padding': '10px',
+              'shape': 'roundrectangle',
+              'width': 'label',
+              'height': 'label',
+              'border-width': 2,
+              'border-color': '#fff'
+            }
+          },
+          {
+            selector: 'edge',
+            style: {
+              'width': 1,
+              'line-color': '#999',
+              'target-arrow-color': '#999',
+              'target-arrow-shape': 'triangle',
+              'curve-style': 'bezier'
+            }
+          }
+        ],
+        layout: {
+          name: 'dagre',
+          rankDir: 'LR',
+          padding: 50,
+          spacingFactor: 1.5
+        } as any // Временно используем any для обхода проблемы с типами
+      });
+
+      // Сохраняем ссылку на экземпляр
+      cyRef.current = cy;
+
+      // Добавляем обработчики событий
+      cy.on('dragfree', 'node', (evt: { target: NodeSingular }) => {
+        const node = evt.target;
+        node.style('background-color', '#69b3a2');
+      });
+
+      cy.on('dragstart', 'node', (evt: { target: NodeSingular }) => {
+        const node = evt.target;
+        node.style('background-color', '#4a8a7a');
+      });
+
+      return () => {
+        cy.destroy();
       };
-    });
-
-    const initialEdges: Edge[] = Object.entries(data).flatMap(([source, deps]) => [
-      ...deps.importsDeclarations.map(target => ({
-        id: `${source}-${target}`,
-        source,
-        target,
-        type: 'smoothstep',
-        animated: true,
-        style: { stroke: '#999' }
-      })),
-      ...deps.reverseImports.map(target => ({
-        id: `${target}-${source}`,
-        source: target,
-        target: source,
-        type: 'smoothstep',
-        animated: true,
-        style: { stroke: '#999' }
-      }))
-    ]);
-
-    const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-    const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-
-    const onLayout = useCallback(() => {
-      // Здесь можно добавить логику для автоматического размещения узлов
-      // Например, использовать force-directed layout
-    }, []);
-
-    return (
-      <div style={{ width: '100%', height: '100%' }}>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          fitView
-          attributionPosition="bottom-right"
-        >
-          <Background />
-          <Controls />
-          <Panel position="top-right">
-            <button onClick={onLayout}>Пересчитать расположение</button>
-          </Panel>
-        </ReactFlow>
-      </div>
-    );
-  } catch (error) {
-    if (error instanceof ValidationError) {
-      throw error;
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      throw new Error(`Ошибка при отображении графа: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
     }
-    throw new Error(`Ошибка при отображении графа: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
-  }
+  }, [data]);
+
+  return (
+    <div
+      ref={containerRef}
+      style={{
+        width: '100%',
+        height: '100%',
+        backgroundColor: '#f5f5f5'
+      }}
+    />
+  );
 };
 
 export const DependencyGraph: React.FC<GraphProps> = (props) => {
