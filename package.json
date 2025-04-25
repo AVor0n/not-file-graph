@@ -1,6 +1,6 @@
 {
-  "name": "not-paper",
-  "displayName": "not-paper",
+  "name": "not-file-graph",
+  "displayName": "not-file-graph",
   "description": "Clone of paper extension with some inprovements",
   "version": "0.0.1",
   "engines": {
@@ -14,8 +14,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "not-paper.helloWorld",
-        "title": "Hello World"
+        "command": "not-file-graph.helloWorld",
+        "title": "Hello World test changes"
       }
     ]
   },
