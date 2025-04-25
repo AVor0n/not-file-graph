@@ -84,6 +84,7 @@ class HelloViewProvider implements vscode.WebviewViewProvider {
 
 					const fileContent = await fs.promises.readFile(absolutePath, 'utf8');
 					const jsonData = JSON.parse(fileContent);
+					vscode.window.showInformationMessage('Hello World from not-file-graph!');
 					webviewView.webview.postMessage({
 						type: 'jsonData',
 						data: jsonData
@@ -98,6 +99,9 @@ class HelloViewProvider implements vscode.WebviewViewProvider {
 						message: errorMessage
 					});
 				}
+			}
+			if (data.command === 'error') {
+				vscode.window.showErrorMessage(data.message);
 			}
 		});
 	}
