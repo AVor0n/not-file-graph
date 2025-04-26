@@ -99,9 +99,9 @@ export const DependencyGraph = ({ data }: GraphProps) => {
                 ],
                 layout: {
                     name: 'dagre',
-                    rankDir: 'LR',
-                    padding: 50,
-                    spacingFactor: 1.5,
+                    rankDir: 'TB',
+                    padding: 10,
+                    spacingFactor: 1,
                 } as any,
             });
 
