@@ -20,13 +20,13 @@ export const App = () => {
                     setRawData(message.data);
                     setError(null);
                     break;
-                case 'fileSelected':
+                case 'buildGraph':
                     if (message.path && rawData) {
-                          const deps = getFileDependencies(rawData, message.path);
-                          setData(deps);
+                        const deps = getFileDependencies(rawData, message.path);
+                        setData(deps);
                     } else {
-                          setData(rawData);
-                      }
+                        setData(rawData);
+                    }
                     break;
                 case 'error':
                     setError(message.message);

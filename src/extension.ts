@@ -32,6 +32,30 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		})
 	);
+
+	// Регистрируем команду для выбора файла
+	context.subscriptions.push(
+		vscode.commands.registerCommand('not-file-graph.selectFile', async () => {
+			const options: vscode.OpenDialogOptions = {
+				canSelectMany: false,
+				openLabel: 'Select File',
+				filters: {
+					'JavaScript/TypeScript files': ['js', 'jsx', 'ts', 'tsx']
+				}
+			};
+
+			const fileUri = await vscode.window.showOpenDialog(options);
+			if (fileUri && fileUri.length > 0) {
+				const workspaceFolders = vscode.workspace.workspaceFolders;
+				if (workspaceFolders && workspaceFolders.length > 0) {
+					const workspaceRoot = workspaceFolders[0].uri.fsPath;
+					const filePath = fileUri[0].fsPath;
+					const relativePath = path.relative(workspaceRoot, filePath);
+					provider.buildGraph(relativePath);
+				}
+			}
+		})
+	);
 }
 
 class HelloViewProvider implements vscode.WebviewViewProvider {
@@ -76,6 +100,21 @@ class HelloViewProvider implements vscode.WebviewViewProvider {
 
 		// Обработка сообщений от webview
 		webviewView.webview.onDidReceiveMessage(async data => {
+			if (data.type === 'openFile') {
+				const workspaceFolders = vscode.workspace.workspaceFolders;
+				if (workspaceFolders && workspaceFolders.length > 0) {
+					const workspaceRoot = workspaceFolders[0].uri.fsPath;
+					const filePath = path.join(workspaceRoot, data.path);
+					const uri = vscode.Uri.file(filePath);
+
+					try {
+						const doc = await vscode.workspace.openTextDocument(uri);
+						await vscode.window.showTextDocument(doc);
+					} catch (error) {
+						vscode.window.showErrorMessage(`Не удалось открыть файл: ${data.path}`);
+					}
+				}
+			}
 			if (data.command === 'loadJson') {
 				const config = vscode.workspace.getConfiguration('not-file-graph');
 				const configPath = config.get<string>('sourceFilePath');
@@ -127,6 +166,12 @@ class HelloViewProvider implements vscode.WebviewViewProvider {
 	public updateSelectedFile(filePath: string) {
 		if (this._view) {
 			this._view.webview.postMessage({ type: 'fileSelected', path: filePath });
+		}
+	}
+
+	public buildGraph(filePath: string) {
+		if (this._view) {
+			this._view.webview.postMessage({ type: 'buildGraph', path: filePath });
 		}
 	}
 

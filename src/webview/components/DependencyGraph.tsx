@@ -1,7 +1,8 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import cytoscape, { Core, NodeSingular } from 'cytoscape';
 import dagre from 'cytoscape-dagre';
-import { ValidationError } from '../../utils/validateDependencies';
+import { validateDependencies, ValidationError } from '../../utils/validateDependencies';
+import { getFileDependencies } from '../../utils/getFileDependencies';
 
 // Регистрируем плагин dagre для автоматического размещения узлов
 cytoscape.use(dagre);
@@ -20,6 +21,7 @@ export interface GraphProps {
 }
 
 export const DependencyGraph = ({ data }: GraphProps) => {
+    const [selectedFile, setSelectedFile] = useState<string | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const cyRef = useRef<Core | null>(null);
 
@@ -87,6 +89,14 @@ export const DependencyGraph = ({ data }: GraphProps) => {
                         },
                     },
                     {
+                        selector: 'node.selected',
+                        style: {
+                            'background-color': '#ff4444',
+                            'border-width': 3,
+                            'border-color': '#fff',
+                        },
+                    },
+                    {
                         selector: 'edge',
                         style: {
                             width: 1,
@@ -120,6 +130,17 @@ export const DependencyGraph = ({ data }: GraphProps) => {
                 node.style('background-color', '#4a8a7a');
             });
 
+            // Добавляем обработчик клика по узлу
+            cy.on('tap', 'node', (evt: { target: NodeSingular }) => {
+                const node = evt.target;
+                const filePath = node.id();
+                // Отправляем сообщение в VS Code для открытия файла
+                vscode.postMessage({
+                    type: 'openFile',
+                    path: filePath
+                });
+            });
+
             return () => {
                 cy.destroy();
             };
@@ -134,6 +155,42 @@ export const DependencyGraph = ({ data }: GraphProps) => {
             );
         }
     }, [data]);
+
+    // Эффект для обработки выбранного файла
+    useEffect(() => {
+        if (!cyRef.current) return;
+
+        // Сначала снимаем выделение со всех узлов
+        cyRef.current.nodes().removeClass('selected');
+
+        // Если есть выбранный файл, выделяем соответствующий узел
+        if (selectedFile) {
+            const node = cyRef.current.getElementById(selectedFile);
+            if (node.length > 0) {
+                node.addClass('selected');
+                // Центрируем граф на выбранном узле
+                cyRef.current.center(node);
+            }
+        }
+    }, [selectedFile]);
+
+    useEffect(() => {
+        const handleMessage = (event: MessageEvent) => {
+            const message = event.data;
+            switch (message.type) {
+                case 'fileSelected':
+                    if (message.path) {
+                        setSelectedFile(message.path);
+                    } else {
+                        setSelectedFile(null);
+                    }
+                    break;
+            }
+        };
+
+        window.addEventListener('message', handleMessage);
+        return () => window.removeEventListener('message', handleMessage);
+    }, []);
 
     return (
         <div

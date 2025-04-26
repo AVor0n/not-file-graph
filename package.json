@@ -16,6 +16,10 @@
       {
         "command": "not-file-graph.helloWorld",
         "title": "Hello World test changes"
+      },
+      {
+        "command": "not-file-graph.selectFile",
+        "title": "Not File Graph: Select File"
       }
     ],
     "viewsContainers": {
