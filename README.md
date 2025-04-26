@@ -24,16 +24,16 @@
 ```json
 {
     "file1.ts": {
-        importsDeclarations: ["file2.ts", "file3.ts"],
-        reverseImports: []
+        "importsDeclarations": ["file2.ts", "file3.ts"],
+        "reverseImports": []
     },
     "file2.ts": {
-        importsDeclarations: ["file2.ts"],
-        reverseImports: ["file1.ts"]
+        "importsDeclarations": ["file2.ts"],
+        "reverseImports": ["file1.ts"]
     },
     "fil3.ts": {
-        importsDeclarations: [],
-        reverseImports: ["file1.ts", "file2.ts"]
+        "importsDeclarations": [],
+        "reverseImports": ["file1.ts", "file2.ts"]
     }
 }
 ```
