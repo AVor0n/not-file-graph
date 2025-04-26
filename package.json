@@ -26,6 +26,15 @@
         "title": "Not File Graph: Show Current File Graph"
       }
     ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "not-file-graph.selectFile",
+          "group": "navigation",
+          "when": "resourceLangId == javascript || resourceLangId == typescript || resourceLangId == javascriptreact || resourceLangId == typescriptreact"
+        }
+      ]
+    },
     "viewsContainers": {
       "activitybar": [
         {

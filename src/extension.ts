@@ -35,24 +35,34 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Регистрируем команду для выбора файла
 	context.subscriptions.push(
-		vscode.commands.registerCommand('not-file-graph.selectFile', async () => {
-			const options: vscode.OpenDialogOptions = {
-				canSelectMany: false,
-				openLabel: 'Select File',
-				filters: {
-					'JavaScript/TypeScript files': ['js', 'jsx', 'ts', 'tsx']
-				}
-			};
+		vscode.commands.registerCommand('not-file-graph.selectFile', async (uri?: vscode.Uri) => {
+			let filePath: string;
 
-			const fileUri = await vscode.window.showOpenDialog(options);
-			if (fileUri && fileUri.length > 0) {
-				const workspaceFolders = vscode.workspace.workspaceFolders;
-				if (workspaceFolders && workspaceFolders.length > 0) {
-					const workspaceRoot = workspaceFolders[0].uri.fsPath;
-					const filePath = fileUri[0].fsPath;
-					const relativePath = path.relative(workspaceRoot, filePath);
-					provider.buildGraph(relativePath);
+			if (uri) {
+				// Если путь передан из контекстного меню
+				filePath = uri.fsPath;
+			} else {
+				// Если команда вызвана из Command Palette, показываем диалог выбора файла
+				const options: vscode.OpenDialogOptions = {
+					canSelectMany: false,
+					openLabel: 'Select File',
+					filters: {
+						'JavaScript/TypeScript files': ['js', 'jsx', 'ts', 'tsx']
+					}
+				};
+
+				const fileUri = await vscode.window.showOpenDialog(options);
+				if (!fileUri || fileUri.length === 0) {
+					return;
 				}
+				filePath = fileUri[0].fsPath;
+			}
+
+			const workspaceFolders = vscode.workspace.workspaceFolders;
+			if (workspaceFolders && workspaceFolders.length > 0) {
+				const workspaceRoot = workspaceFolders[0].uri.fsPath;
+				const relativePath = path.relative(workspaceRoot, filePath);
+				provider.buildGraph(relativePath);
 			}
 		})
 	);
