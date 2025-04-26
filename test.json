@@ -1,0 +1,90 @@
+{
+    "src/components/Button.tsx": {
+        "importsDeclarations": ["src/components/Icon.tsx", "src/styles/button.css"],
+        "reverseImports": ["src/components/Form.tsx", "src/pages/Login.tsx", "src/pages/Register.tsx"]
+    },
+    "src/components/Icon.tsx": {
+        "importsDeclarations": ["src/styles/icon.css"],
+        "reverseImports": ["src/components/Button.tsx", "src/components/Header.tsx", "src/components/Sidebar.tsx"]
+    },
+    "src/components/Form.tsx": {
+        "importsDeclarations": ["src/components/Button.tsx", "src/components/Input.tsx", "src/utils/validation.ts"],
+        "reverseImports": ["src/pages/Login.tsx", "src/pages/Register.tsx", "src/pages/Profile.tsx"]
+    },
+    "src/components/Input.tsx": {
+        "importsDeclarations": ["src/styles/input.css"],
+        "reverseImports": ["src/components/Form.tsx", "src/components/Search.tsx"]
+    },
+    "src/components/Header.tsx": {
+        "importsDeclarations": ["src/components/Icon.tsx", "src/components/Search.tsx", "src/components/UserMenu.tsx"],
+        "reverseImports": ["src/layouts/MainLayout.tsx"]
+    },
+    "src/components/Sidebar.tsx": {
+        "importsDeclarations": ["src/components/Icon.tsx", "src/components/Navigation.tsx"],
+        "reverseImports": ["src/layouts/MainLayout.tsx"]
+    },
+    "src/components/Search.tsx": {
+        "importsDeclarations": ["src/components/Input.tsx", "src/utils/search.ts"],
+        "reverseImports": ["src/components/Header.tsx"]
+    },
+    "src/components/UserMenu.tsx": {
+        "importsDeclarations": ["src/components/Icon.tsx", "src/utils/auth.ts"],
+        "reverseImports": ["src/components/Header.tsx"]
+    },
+    "src/components/Navigation.tsx": {
+        "importsDeclarations": ["src/utils/routes.ts"],
+        "reverseImports": ["src/components/Sidebar.tsx"]
+    },
+    "src/pages/Login.tsx": {
+        "importsDeclarations": ["src/components/Form.tsx", "src/components/Button.tsx", "src/utils/auth.ts"],
+        "reverseImports": []
+    },
+    "src/pages/Register.tsx": {
+        "importsDeclarations": ["src/components/Form.tsx", "src/components/Button.tsx", "src/utils/auth.ts"],
+        "reverseImports": []
+    },
+    "src/pages/Profile.tsx": {
+        "importsDeclarations": ["src/components/Form.tsx", "src/utils/auth.ts"],
+        "reverseImports": []
+    },
+    "src/layouts/MainLayout.tsx": {
+        "importsDeclarations": ["src/components/Header.tsx", "src/components/Sidebar.tsx"],
+        "reverseImports": []
+    },
+    "src/utils/auth.ts": {
+        "importsDeclarations": ["src/api/auth.ts"],
+        "reverseImports": ["src/components/UserMenu.tsx", "src/pages/Login.tsx", "src/pages/Register.tsx", "src/pages/Profile.tsx"]
+    },
+    "src/utils/validation.ts": {
+        "importsDeclarations": [],
+        "reverseImports": ["src/components/Form.tsx"]
+    },
+    "src/utils/search.ts": {
+        "importsDeclarations": ["src/api/search.ts"],
+        "reverseImports": ["src/components/Search.tsx"]
+    },
+    "src/utils/routes.ts": {
+        "importsDeclarations": [],
+        "reverseImports": ["src/components/Navigation.tsx"]
+    },
+    "src/api/auth.ts": {
+        "importsDeclarations": [],
+        "reverseImports": ["src/utils/auth.ts"]
+    },
+    "src/api/search.ts": {
+        "importsDeclarations": [],
+        "reverseImports": ["src/utils/search.ts"]
+    },
+    "src/styles/button.css": {
+        "importsDeclarations": [],
+        "reverseImports": ["src/components/Button.tsx"]
+    },
+    "src/styles/icon.css": {
+        "importsDeclarations": [],
+        "reverseImports": ["src/components/Icon.tsx"]
+    },
+    "src/styles/input.css": {
+        "importsDeclarations": [],
+        "reverseImports": ["src/components/Input.tsx"]
+    }
+}
