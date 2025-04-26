@@ -4,12 +4,23 @@
     "description": "Visualization of dependencies between files in the project",
     "version": "0.0.1",
     "publisher": "avor0n",
+    "author": {
+        "name": "Andrey Voronin",
+        "email": "avor0n@ya.ru",
+        "url": "https://github.com/avor0n"
+    },
+    "preview": true,
     "repository": {
         "type": "git",
         "url": "https://github.com/avor0n/not-file-graph.git"
     },
+    "bugs": {
+        "url": "https://github.com/avor0n/not-file-graph/issues"
+    },
+    "homepage": "https://github.com/avor0n/not-file-graph#readme",
     "engines": {
-        "vscode": "^1.99.0"
+        "vscode": "^1.99.0",
+        "node": ">=16.0.0"
     },
     "categories": [
         "Other"
@@ -26,7 +37,6 @@
         "color": "#C80000",
         "theme": "dark"
     },
-    "activationEvents": [],
     "main": "./dist/extension.js",
     "contributes": {
         "commands": [
@@ -82,15 +92,15 @@
         }
     },
     "scripts": {
-        "vscode:prepublish": "pnpm run package",
-        "compile": "pnpm run check-types && pnpm run lint && node esbuild.mjs",
+        "vscode:prepublish": "npm run package",
+        "compile": "npm run check-types && npm run lint && node esbuild.mjs",
         "watch": "npm-run-all -p watch:*",
         "watch:esbuild": "node esbuild.mjs --watch",
         "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
-        "package": "pnpm run check-types && pnpm run lint && node esbuild.mjs --production",
+        "package": "npm run check-types && npm run lint && node esbuild.mjs --production",
         "compile-tests": "tsc -p . --outDir out",
         "watch-tests": "tsc -p . -w --outDir out",
-        "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
+        "pretest": "npm run compile-tests && npm run compile && npm run lint",
         "check-types": "tsc --noEmit",
         "lint": "eslint src",
         "test": "vscode-test"
@@ -108,17 +118,15 @@
         "@vscode/test-cli": "^0.0.10",
         "@vscode/test-electron": "^2.4.1",
         "@types/react": "^19.1.2",
-        "@types/react-dom": "^19.1.2",
-        "@types/d3": "^7.4.3"
+        "@types/react-dom": "^19.1.2"
     },
     "dependencies": {
         "react": "^18.3.1",
         "react-dom": "^18.3.1",
-        "d3": "^7.8.5",
-        "reactflow": "^11.10.1",
         "cytoscape": "^3.28.1",
         "react-cytoscapejs": "^2.0.0",
         "cytoscape-dagre": "^2.5.0",
         "dagre": "^0.8.5"
-    }
+    },
+    "license": "MIT"
 }
