@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import cytoscape, { Core, NodeSingular } from 'cytoscape';
 import dagre from 'cytoscape-dagre';
-import { validateDependencies, ValidationError } from '../../utils/validateDependencies';
-import { getFileDependencies } from '../../utils/getFileDependencies';
+import { ValidationError } from '../../utils/validateDependencies';
 
 // Регистрируем плагин dagre для автоматического размещения узлов
 cytoscape.use(dagre);
@@ -89,6 +88,22 @@ export const DependencyGraph = ({ data, selectedFile }: GraphProps) => {
                         },
                     },
                     {
+                        selector: 'node.root',
+                        style: {
+                            'background-color': '#4a90e2',
+                            'border-width': 3,
+                            'border-color': '#fff',
+                        },
+                    },
+                    {
+                        selector: 'node.root.selected',
+                        style: {
+                            'background-color': '#ff4444',
+                            'border-width': 3,
+                            'border-color': '#fff',
+                        },
+                    },
+                    {
                         selector: 'node.selected',
                         style: {
                             'background-color': '#ff4444',
@@ -139,6 +154,13 @@ export const DependencyGraph = ({ data, selectedFile }: GraphProps) => {
                     type: 'openFile',
                     path: filePath
                 });
+            });
+
+            // Определяем корневые узлы (без родителей)
+            cy.nodes().forEach(node => {
+                if (node.indegree(false) === 0) {
+                    node.addClass('root');
+                }
             });
 
             return () => {
