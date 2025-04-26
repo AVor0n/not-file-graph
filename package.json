@@ -20,6 +20,10 @@
       {
         "command": "not-file-graph.selectFile",
         "title": "Not File Graph: Select File"
+      },
+      {
+        "command": "not-file-graph.showCurrentFileGraph",
+        "title": "Not File Graph: Show Current File Graph"
       }
     ],
     "viewsContainers": {

@@ -56,6 +56,24 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		})
 	);
+
+	// Регистрируем команду для открытия графа текущего файла
+	context.subscriptions.push(
+		vscode.commands.registerCommand('not-file-graph.showCurrentFileGraph', () => {
+			const editor = vscode.window.activeTextEditor;
+			if (editor) {
+				const workspaceFolders = vscode.workspace.workspaceFolders;
+				if (workspaceFolders && workspaceFolders.length > 0) {
+					const workspaceRoot = workspaceFolders[0].uri.fsPath;
+					const filePath = editor.document.uri.fsPath;
+					const relativePath = path.relative(workspaceRoot, filePath);
+					provider.buildGraph(relativePath);
+				}
+			} else {
+				vscode.window.showInformationMessage('Нет активного файла');
+			}
+		})
+	);
 }
 
 class HelloViewProvider implements vscode.WebviewViewProvider {
@@ -171,7 +189,11 @@ class HelloViewProvider implements vscode.WebviewViewProvider {
 
 	public buildGraph(filePath: string) {
 		if (this._view) {
-			this._view.webview.postMessage({ type: 'buildGraph', path: filePath });
+			this._view.webview.postMessage({
+				type: 'buildGraph',
+				path: filePath,
+				selectedFile: filePath // Добавляем информацию о выбранном файле
+			});
 		}
 	}
 

@@ -8,6 +8,7 @@ import { getFileDependencies } from '../../utils/getFileDependencies';
 
 export const App = () => {
     const [rawData, setRawData] = useState<GraphData | null>(null);
+    const [selectedFile, setSelectedFile] = useState<string | null>(null);
     const [data, setData] = useState<GraphData | null>(null);
     const [error, setError] = useState<string | null>(null);
 
@@ -24,8 +25,16 @@ export const App = () => {
                     if (message.path && rawData) {
                         const deps = getFileDependencies(rawData, message.path);
                         setData(deps);
+                        setSelectedFile(message.selectedFile);
                     } else {
                         setData(rawData);
+                    }
+                    break;
+                  case 'fileSelected':
+                    if (message.path) {
+                        setSelectedFile(message.path);
+                    } else {
+                        setSelectedFile(null);
                     }
                     break;
                 case 'error':
@@ -48,7 +57,7 @@ export const App = () => {
         <ErrorBoundary>
             <div style={{ width: '100%', height: '100%' }}>
                 {error && <div>{error}</div>}
-                {data && <DependencyGraph data={data} />}
+                {data && <DependencyGraph data={data} selectedFile={selectedFile} />}
             </div>
         </ErrorBoundary>
     );

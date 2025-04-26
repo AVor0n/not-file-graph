@@ -17,11 +17,11 @@ export interface GraphData {
 }
 
 export interface GraphProps {
-    data: GraphData;
+  data: GraphData;
+  selectedFile: string | null;
 }
 
-export const DependencyGraph = ({ data }: GraphProps) => {
-    const [selectedFile, setSelectedFile] = useState<string | null>(null);
+export const DependencyGraph = ({ data, selectedFile }: GraphProps) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const cyRef = useRef<Core | null>(null);
 
@@ -173,24 +173,6 @@ export const DependencyGraph = ({ data }: GraphProps) => {
             }
         }
     }, [selectedFile]);
-
-    useEffect(() => {
-        const handleMessage = (event: MessageEvent) => {
-            const message = event.data;
-            switch (message.type) {
-                case 'fileSelected':
-                    if (message.path) {
-                        setSelectedFile(message.path);
-                    } else {
-                        setSelectedFile(null);
-                    }
-                    break;
-            }
-        };
-
-        window.addEventListener('message', handleMessage);
-        return () => window.removeEventListener('message', handleMessage);
-    }, []);
 
     return (
         <div
