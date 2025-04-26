@@ -1,45 +1,54 @@
 import { useEffect, useState } from 'react';
-import { HelloButton } from './HelloButton';
 import React from 'react';
-import {DependencyGraph} from './DependencyGraph';
+import {DependencyGraph, GraphData} from './DependencyGraph';
 import {ErrorBoundary} from './ErrorBoundary';
+import { validateDependencies } from '../../utils/validateDependencies';
+import { getFileDependencies } from '../../utils/getFileDependencies';
 
-interface JsonData {
-    [key: string]: any;
-}
 
 export const App = () => {
-    const [jsonData, setJsonData] = useState<JsonData | null>(null);
+    const [rawData, setRawData] = useState<GraphData | null>(null);
+    const [data, setData] = useState<GraphData | null>(null);
     const [error, setError] = useState<string | null>(null);
 
-    const handleClick = () => {
-        // Отправляем сообщение в VS Code
-        vscode.postMessage({ command: 'loadJson' });
-    };
-
-    // Обработчик сообщений от VS Code
     useEffect(() => {
         const handleMessage = (event: MessageEvent) => {
             const message = event.data;
-            if (message.type === 'jsonData') {
-                setJsonData(message.data);
-                setError(null);
-            } else if (message.type === 'error') {
-                setError(message.message);
-                setJsonData(null);
+            switch (message.type) {
+                case 'jsonData':
+                    validateDependencies(message.data);
+                    setRawData(message.data);
+                    setError(null);
+                    break;
+                case 'fileSelected':
+                    if (message.path && rawData) {
+                          const deps = getFileDependencies(rawData, message.path);
+                          setData(deps);
+                    } else {
+                          setData(rawData);
+                      }
+                    break;
+                case 'error':
+                    setError(message.message);
+                    setRawData(null);
+                    break;
             }
         };
 
         window.addEventListener('message', handleMessage);
+
+        if(!rawData) {
+            vscode.postMessage({ command: 'loadJson' });
+        }
+
         return () => window.removeEventListener('message', handleMessage);
-    }, []);
+    }, [rawData]);
 
     return (
         <ErrorBoundary>
             <div style={{ width: '100%', height: '100%' }}>
-                <HelloButton onClick={handleClick} />
                 {error && <div>{error}</div>}
-                {jsonData && <DependencyGraph data={jsonData} />}
+                {data && <DependencyGraph data={data} />}
             </div>
         </ErrorBoundary>
     );

@@ -17,9 +17,26 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider('not-file-graph.helloView', provider)
 	);
+
+	// Добавляем обработчик изменения активного редактора
+	context.subscriptions.push(
+		vscode.window.onDidChangeActiveTextEditor(editor => {
+			if (editor) {
+				const workspaceFolders = vscode.workspace.workspaceFolders;
+				if (workspaceFolders && workspaceFolders.length > 0) {
+					const workspaceRoot = workspaceFolders[0].uri.fsPath;
+					const filePath = editor.document.uri.fsPath;
+					const relativePath = path.relative(workspaceRoot, filePath);
+					provider.updateSelectedFile(relativePath);
+				}
+			}
+		})
+	);
 }
 
 class HelloViewProvider implements vscode.WebviewViewProvider {
+	private _view?: vscode.WebviewView;
+
 	constructor(
 		private readonly _extensionUri: vscode.Uri,
 	) { }
@@ -46,6 +63,8 @@ class HelloViewProvider implements vscode.WebviewViewProvider {
 		context: vscode.WebviewViewResolveContext,
 		_token: vscode.CancellationToken,
 	) {
+		this._view = webviewView;
+
 		webviewView.webview.options = {
 			enableScripts: true,
 			localResourceRoots: [
@@ -84,7 +103,6 @@ class HelloViewProvider implements vscode.WebviewViewProvider {
 
 					const fileContent = await fs.promises.readFile(absolutePath, 'utf8');
 					const jsonData = JSON.parse(fileContent);
-					vscode.window.showInformationMessage('Hello World from not-file-graph!');
 					webviewView.webview.postMessage({
 						type: 'jsonData',
 						data: jsonData
@@ -104,6 +122,12 @@ class HelloViewProvider implements vscode.WebviewViewProvider {
 				vscode.window.showErrorMessage(data.message);
 			}
 		});
+	}
+
+	public updateSelectedFile(filePath: string) {
+		if (this._view) {
+			this._view.webview.postMessage({ type: 'fileSelected', path: filePath });
+		}
 	}
 
 	private _getHtmlForWebview(webview: vscode.Webview) {
