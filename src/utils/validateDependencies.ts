@@ -1,4 +1,4 @@
-interface DependencyData {
+export interface DependencyData {
   importsDeclarations: string[];
   reverseImports: string[];
 }

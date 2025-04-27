@@ -51,6 +51,10 @@
             {
                 "command": "not-file-graph.showCurrentFileGraph",
                 "title": "Not File Graph: Show Current File Graph"
+            },
+            {
+                "command": "not-file-graph.generateDependencies",
+                "title": "Not File Graph: Generate Dependencies"
             }
         ],
         "menus": {
@@ -85,8 +89,22 @@
             "properties": {
                 "not-file-graph.sourceFilePath": {
                     "type": "string",
-                    "default": "",
+                    "default": ".vscode/dependencies.json",
                     "description": "Path to the source JSON file"
+                },
+                "not-file-graph.ignorePatterns": {
+                    "type": "array",
+                    "default": [
+                        "node_modules/**",
+                        "dist/**",
+                        ".git/**"
+                    ],
+                    "description": "Glob patterns to ignore when scanning dependencies"
+                },
+                "not-file-graph.tsconfigPath": {
+                    "type": "string",
+                    "default": "tsconfig.json",
+                    "description": "Path to tsconfig.json file relative to workspace root. Leave empty if not using TypeScript."
                 }
             }
         }
@@ -118,7 +136,8 @@
         "@vscode/test-cli": "^0.0.10",
         "@vscode/test-electron": "^2.4.1",
         "@types/react": "^19.1.2",
-        "@types/react-dom": "^19.1.2"
+        "@types/react-dom": "^19.1.2",
+        "@types/dependency-tree": "^8.0.0"
     },
     "dependencies": {
         "react": "^18.3.1",
@@ -126,7 +145,9 @@
         "cytoscape": "^3.28.1",
         "react-cytoscapejs": "^2.0.0",
         "cytoscape-dagre": "^2.5.0",
-        "dagre": "^0.8.5"
+        "dagre": "^0.8.5",
+        "dependency-tree": "^11.1.1",
+        "minimatch": "^9.0.3"
     },
     "license": "MIT"
 }

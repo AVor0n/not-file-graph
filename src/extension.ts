@@ -3,6 +3,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import { generateDependencies } from './utils/generateDependencies';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -29,6 +30,42 @@ export function activate(context: vscode.ExtensionContext) {
 					const relativePath = path.relative(workspaceRoot, filePath);
 					provider.updateSelectedFile(relativePath);
 				}
+			}
+		})
+	);
+
+	// Регистрируем команду для генерации зависимостей
+	context.subscriptions.push(
+		vscode.commands.registerCommand('not-file-graph.generateDependencies', async () => {
+			const workspaceFolders = vscode.workspace.workspaceFolders;
+			if (!workspaceFolders || workspaceFolders.length === 0) {
+				vscode.window.showErrorMessage('No workspace folder is opened');
+				return;
+			}
+
+			const workspaceRoot = workspaceFolders[0].uri.fsPath;
+			const outputPath = path.join(workspaceRoot, '.vscode/dependencies.json');
+
+			try {
+				vscode.window.withProgress({
+					location: vscode.ProgressLocation.Notification,
+					title: "Generating dependencies...",
+					cancellable: false
+				}, async (progress) => {
+					progress.report({ increment: 0 });
+					const dependencies = await generateDependencies(workspaceRoot);
+					progress.report({ increment: 50 });
+					await fs.promises.writeFile(outputPath, JSON.stringify(dependencies, null, 2));
+					progress.report({ increment: 50 });
+				});
+
+				// Обновляем настройку с путем к файлу
+				const config = vscode.workspace.getConfiguration('not-file-graph');
+				await config.update('sourceFilePath', '.vscode/dependencies.json', true);
+
+				vscode.window.showInformationMessage(`Dependencies generated successfully at ${outputPath}`);
+			} catch (error) {
+				vscode.window.showErrorMessage(`Failed to generate dependencies: ${error instanceof Error ? error.message : 'Unknown error'}`);
 			}
 		})
 	);
@@ -150,7 +187,7 @@ class HelloViewProvider implements vscode.WebviewViewProvider {
 				if (!configPath) {
 					webviewView.webview.postMessage({
 						type: 'error',
-						message: 'Source file path is not configured. Please set it in settings.'
+						message: 'Source file path is not configured. Please set it in settings or generate dependencies.'
 					});
 					return;
 				}
@@ -163,7 +200,7 @@ class HelloViewProvider implements vscode.WebviewViewProvider {
 					if (!fs.existsSync(absolutePath)) {
 						webviewView.webview.postMessage({
 							type: 'error',
-							message: `File not found: ${absolutePath}`
+							message: `File not found: ${absolutePath}. Please generate dependencies first.`
 						});
 						return;
 					}
@@ -193,7 +230,10 @@ class HelloViewProvider implements vscode.WebviewViewProvider {
 
 	public updateSelectedFile(filePath: string) {
 		if (this._view) {
-			this._view.webview.postMessage({ type: 'fileSelected', path: filePath });
+			this._view.webview.postMessage({
+				type: 'fileSelected',
+				path: filePath
+			});
 		}
 	}
 
@@ -202,7 +242,7 @@ class HelloViewProvider implements vscode.WebviewViewProvider {
 			this._view.webview.postMessage({
 				type: 'buildGraph',
 				path: filePath,
-				selectedFile: filePath // Добавляем информацию о выбранном файле
+				selectedFile: filePath
 			});
 		}
 	}
