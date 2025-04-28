@@ -19,6 +19,7 @@
     },
     "homepage": "https://github.com/avor0n/not-file-graph#readme",
     "engines": {
+        "vscode": "^1.60.0",
         "node": ">=16.0.0"
     },
     "categories": [
