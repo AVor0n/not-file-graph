@@ -109,21 +109,12 @@ const webviewConfig = {
 
 async function build() {
 	try {
-		const ctx = await esbuild.context({
-			entryPoints: ['src/extension.ts', 'src/webview/index.tsx'],
-			bundle: true,
-			external: external,
-			format: 'cjs',
-			target: 'es2020',
-			platform: 'node',
-			outdir: 'dist',
-			sourcemap: !production,
-			minify: production,
-		});
-
-		await esbuild.build(extensionConfig);
-		await esbuild.build(webviewConfig);
+		await Promise.all([
+			esbuild.build(extensionConfig),
+			esbuild.build(webviewConfig)
+		]);
 		console.log('Build completed successfully');
+		process.exit(0);
 	} catch (error) {
 		console.error('Build failed:', error);
 		process.exit(1);
