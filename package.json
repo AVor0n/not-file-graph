@@ -38,6 +38,9 @@
         "theme": "dark"
     },
     "main": "./dist/extension.js",
+    "activationEvents": [
+        "onView:not-file-graph-view"
+    ],
     "contributes": {
         "commands": [
             {
