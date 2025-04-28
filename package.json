@@ -2,7 +2,7 @@
     "name": "not-file-graph",
     "displayName": "Not File Graph",
     "description": "Visualization of dependencies between files in the project",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "publisher": "avor0n",
     "author": {
         "name": "Andrey Voronin",
