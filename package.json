@@ -39,7 +39,7 @@
     },
     "main": "./dist/extension.js",
     "activationEvents": [
-        "onView:not-file-graph-view"
+        "onStartupFinished"
     ],
     "contributes": {
         "commands": [
